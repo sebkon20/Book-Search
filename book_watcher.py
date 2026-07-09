@@ -212,9 +212,52 @@ def fetch_ebay(query: str) -> List[Dict]:
     return listings
 
 
-# ---------------------------------------------------------------------------
-# MATCHING LOGIC
-# ---------------------------------------------------------------------------
+def fetch_biblio(query: str) -> List[Dict]:
+    """Scrape Biblio.com search results for a query.
+
+    NOTE: Biblio.com runs bot-detection that blocked automated inspection of
+    its live markup while building this script, so the selectors below are a
+    best-effort guess based on Biblio's known result-page conventions, not a
+    verified match. If this function returns 0 results while AbeBooks/eBay
+    return results normally, that's the signal the selectors need updating --
+    open the search URL in a real browser, inspect one result card, and
+    adjust the `card.select_one(...)` lines below to match.
+    """
+    url = "https://www.biblio.com/bookstore/search.php"
+    params = {"stage": "1", "keyisbn": query, "sortby": "17"}
+    listings = []
+    try:
+        resp = requests.get(url, params=params, headers=HEADERS, timeout=20)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "html.parser")
+
+        cards = soup.select("div.result-item, div.result-info, li.search-result")
+        for card in cards:
+            title_el = card.select_one("a.result-title, .title, h3 a")
+            price_el = card.select_one(".price, .result-price")
+            link_el = card.select_one("a[href]")
+            desc_el = card.select_one(".result-desc, .description, .edition")
+
+            title = title_el.get_text(strip=True) if title_el else ""
+            if not title:
+                continue
+            price = price_el.get_text(strip=True) if price_el else ""
+            link = link_el["href"] if link_el else ""
+            if link and link.startswith("/"):
+                link = "https://www.biblio.com" + link
+            extra = desc_el.get_text(strip=True) if desc_el else ""
+
+            listings.append({
+                "source": "Biblio",
+                "title": title,
+                "price": price,
+                "link": link,
+                "text_blob": " ".join([title, extra]).lower(),
+            })
+    except requests.RequestException as e:
+        print(f"[Biblio] request failed for '{query}': {e}", file=sys.stderr)
+
+    return listings
 
 def matches_book(listing: Dict, book: BookTarget) -> bool:
     text = listing["text_blob"]
@@ -327,7 +370,7 @@ def main():
         new_listings = []
         current_matches = []
 
-        for fetch_fn in (fetch_abebooks, fetch_ebay):
+        for fetch_fn in (fetch_abebooks, fetch_ebay, fetch_biblio):
             raw_listings = fetch_fn(book.search_query)
             time.sleep(REQUEST_DELAY_SECONDS)
 
