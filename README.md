@@ -94,10 +94,18 @@ as encrypted GitHub Secrets instead of `config.json`).
 
 ## Important caveats
 
-- **Scraping fragility**: AbeBooks and eBay change their page markup
-  periodically, which can break the CSS selectors in `fetch_abebooks()` /
-  `fetch_ebay()`. If the script suddenly reports zero results everywhere,
-  that's the likely cause — the selectors need a quick update.
+- **Biblio.com selectors are unverified**: Biblio's site blocked automated
+  inspection while building this, so `fetch_biblio()` uses best-guess CSS
+  selectors rather than ones confirmed against live markup. Run the script
+  once and check the console output/email — if AbeBooks and eBay return
+  matches but Biblio consistently returns zero, the selectors in
+  `fetch_biblio()` likely need updating (open a Biblio search result page in
+  a browser, inspect one listing, and adjust the `card.select_one(...)`
+  lines).
+- **Scraping fragility**: AbeBooks, eBay, and Biblio all change their page
+  markup periodically, which can break the CSS selectors in the corresponding
+  `fetch_*()` functions. If the script suddenly reports zero results
+  everywhere, that's the likely cause — the selectors need a quick update.
 - **eBay's official API**: for something more robust long-term, eBay offers
   a free Browse API (needs a developer account + App ID) that returns
   structured JSON instead of scraped HTML. I kept this version
