@@ -1,18 +1,33 @@
 # Rare Book Watcher
 
-Checks AbeBooks and eBay for listings matching 5 target first editions, filters
+Checks AbeBooks, eBay and Biblio for listings matching 9 target books, filters
 by edition/year/publisher, and emails you a daily summary (new matches flagged
-`[NEW]`, plus a full list of everything currently matching).
+`[NEW]`, plus a full list of everything currently matching, with notes such as
+"1st printing stated" or "publisher: Appleton").
 
 ## Books tracked
 1. Netter, *Atlas of Human Anatomy* — 1989 true 1st edition
-2. Osler, *Principles and Practice of Medicine* — 1892 1st edition
-3. Rachel Carson, *Silent Spring* — 1962 1st edition
-4. E.O. Wilson, *Sociobiology* — 1975 1st edition
-5. Cajal, *Histology of the Nervous System* — 1995 English 1st printing/edition
+2. Osler, *The Principles and Practice of Medicine* — 1892 1st edition, 1st print
+3. Osler, *Sir William Osler 1849-1919: A Selection for Medical Students* — any copy
+4. Osler, *Aequanimitas and Other Addresses* — 1st edition, 1st print (1904/1905)
+5. Fishbein, *Modern Home Medical Adviser* — 1st edition, 1st print
+6. Rachel Carson, *Silent Spring* — 1962 1st edition
+7. E.O. Wilson, *Sociobiology* — 1975 1st edition
+8. Cajal, *Histology of the Nervous System* — 1995 English 1st printing/edition
+9. Latour & Woolgar, *Laboratory Life* — 1st edition / 1st print (Sage 1979 or Princeton 1986)
+
+## How matching works
+Listing text and our keywords are normalised before comparison, so these all
+count as the same thing: `1st` / `first` / `1st ed.` / `first edition` /
+`1st/1st`, `print` / `printing` / `impression`, `advisor` / `adviser`,
+`Aequanimitas` / `Æquanimitas` / `Equanimitas`, and punctuation or case
+differences. Each book is also searched with several query permutations
+(e.g. both "first edition" and "1st edition", both spellings of the title),
+and results are de-duplicated.
 
 Edit the `BOOKS` list near the top of `book_watcher.py` to adjust keywords,
-add exclusions, or add more books.
+add exclusions, or add more books. A run now makes roughly 100 requests (about
+5 minutes), spaced 2 seconds apart.
 
 ## Setup
 
